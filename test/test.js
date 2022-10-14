@@ -1,8 +1,18 @@
+import { readFileSync } from 'fs'
+import 'util'
+import { inspect } from 'util'
 
-export default function parse_mmCIF(text) {
+const PDB = readFileSync('./assets/1axc.cif', 'utf-8').split('\n')
+const ATOMS = PDB.filter((line) => line.startsWith('ATOM')).map(array => array.split(' ').filter(element => element !== ''))
+const atomLabels = PDB.filter((line) => line.startsWith('_atom_site')).filter((line) => line.startsWith('_atom_sites.fract_transf') === false && line.startsWith('_atom_sites.entry_id') === false)
+const customLabels = ['', 'id', 'atom', 'atom_type', '', 'residue', 'chain', 'entity_index', 'residue_index', '', 'x', 'y', 'z', 'occupancy', 'isotropic_temperature_factor', 'formal_charge', 'author_residue_index', 'author_residue', 'author_chain', 'author_atom_type', '' ]
+const test = ATOMS[0].map((entry, index) => {
+    const label = customLabels[index]
+    if(label !== '')
+    return (
+        {[label]: entry}
+    )}).filter((entry) => entry)
 
-    const ATOMS = text.split('\n').filter((line) => line.startsWith('ATOM')).map(array => array.split(' ').filter(element => element !== ''))
-    const customLabels = ['', 'id', 'atom', 'atom_type', '', 'residue', 'chain', 'entity_index', 'residue_index', '', 'x', 'y', 'z', 'occupancy', 'isotropic_temperature_factor', 'formal_charge', 'author_residue_index', 'author_residue', 'author_chain', 'author_type', '' ]    
     const newAtoms = ATOMS.map((array) => {
         let object = {}
         let author_entries = {}
@@ -40,5 +50,5 @@ export default function parse_mmCIF(text) {
         )
     })
 
-    return newAtoms
-}
+    console.log(newAtoms[0])
+    
