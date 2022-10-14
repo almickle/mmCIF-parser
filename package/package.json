@@ -1,0 +1,34 @@
+{
+  "name": "mmcif-parser",
+  "version": "1.1.0",
+  "description": "utility for parsing mmCIF files into JSON format",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/almickle/mmCIF-parser.git"
+  },
+  "keywords": [
+    "PDB",
+    "mmCIF",
+    "mmcif",
+    "protein",
+    "data",
+    "bank",
+    "biochemistry",
+    "biochem",
+    "biology",
+    "json",
+    "javascript",
+    "parser",
+    "parse"
+  ],
+  "author": "almickle",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/almickle/mmCIF-parser/issues"
+  },
+  "homepage": "https://github.com/almickle/mmCIF-parser#readme"
+}
