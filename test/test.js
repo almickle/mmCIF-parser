@@ -3,7 +3,7 @@ import { inspect } from 'util'
 import 'util'
 
 
-const PDB = readFileSync('./assets/1axc.cif', 'utf-8').split('\n')
+const PDB = readFileSync('./assets/1ul1.cif', 'utf-8').split('\n')
 const ATOMS = PDB.filter((line) => line.startsWith('ATOM')).map(array => array.split(' ').filter(element => element !== ''))
 const atomLabels = PDB.filter((line) => line.startsWith('_atom_site')).filter((line) => line.startsWith('_atom_sites.fract_transf') === false && line.startsWith('_atom_sites.entry_id') === false)
 const customLabels = ['', 'id', 'atom', 'atom_type', '', 'residue', 'chain', 'entity_index', 'residue_index', '', 'x', 'y', 'z', 'occupancy', 'isotropic_temperature_factor', 'formal_charge', 'author_residue_index', 'author_residue', 'author_chain', 'author_atom_type', '' ]
@@ -55,8 +55,34 @@ let object = {}
             chainData.push(PDB[i])
         }
     }
+
     chainData.shift()
-    const chainInfo = chainData.map((line) => line.split(' ').filter((element) => element !== ''))
+
+    const chainInfo = chainData.map((line) => replaceSpaces(line, 0)).map((line) => replaceQuotes(line, 0)).map((line) => line.split(' ')).map((array) => array.filter((element) => element !== ''))
+
+    function replaceSpaces(line, count) {
+        if(count === line.length-1) {
+            return (
+                line
+            )
+        }
+        const newLine = line.replace(/(?<='\w+)\s/, '_')
+        count++
+        return replaceSpaces(newLine, count)
+    }
+
+    function replaceQuotes(line, count) {
+        if(count >= 2) {
+            return (
+                line
+            )
+        }
+        const newLine = line.replace(/['"`]/, '')
+        count++
+        return replaceQuotes(newLine, count)
+    }
+
+
     const chainArray = chainInfo.map((entry) => {
         let chainObj = {}
         entry.forEach((entry, index) => {

@@ -52,8 +52,34 @@ export default function parse_mmCIF(text) {
             chainData.push(PDB[i])
         }
     }
+
     chainData.shift()
-    const chainInfo = chainData.map((line) => line.split(' ').filter((element) => element !== ''))
+
+    const chainInfo = chainData.map((line) => replaceSpaces(line, 0)).map((line) => replaceQuotes(line, 0)).map((line) => line.split(' ')).map((array) => array.filter((element) => element !== ''))
+
+    function replaceSpaces(line, count) {
+        if(count === line.length-1) {
+            return (
+                line
+            )
+        }
+        const newLine = line.replace(/(?<='\w+)\s/, '_')
+        count++
+        return replaceSpaces(newLine, count)
+    }
+
+    function replaceQuotes(line, count) {
+        if(count >= 2) {
+            return (
+                line
+            )
+        }
+        const newLine = line.replace(/['"`]/, '')
+        count++
+        return replaceQuotes(newLine, count)
+    }
+
+
     const chainArray = chainInfo.map((entry) => {
         let chainObj = {}
         entry.forEach((entry, index) => {
