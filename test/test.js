@@ -92,37 +92,20 @@ let object = {}
         chains.push([])
     }
 
+    const chainLabels = newAtoms.map((atom) => atom.chain).filter((chainID, index, array) => chainID !== array[index+1])
 
-    function findChain (lastChain, index, chainIndex, containerArrays) {
-        if(index === (newAtoms.length-1)) {
-            object = {...object, chains: chains}
-            return
-        }
-        let currentChain = newAtoms[index].chain
-        if(currentChain !== lastChain && index > 0) {
-            chainIndex++
-        }
-        containerArrays[chainIndex].push(newAtoms[index])
-        index++
-        if(index % 4000 === 0){
-            setTimeout(() => {
-                findChain(currentChain, index, chainIndex, containerArrays)
-            }, 10)
-        } else {
-            findChain(currentChain, index, chainIndex, containerArrays)
-        }
-    }
+    const chainAtoms = chains.map((chain, index) => newAtoms.filter((atom) => atom.chain === chainLabels[index]))
 
-    findChain('', 0, 0, chains)
 
+    object = {...object, chains: chainAtoms}
     object = {...object, atoms: newAtoms}
 
 
-    setTimeout(() => {
-        const backbones = object.chains.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
-        object = {...object, backbones: backbones }
-    }, 100)
+    const backbones = object.chains.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
+    object = {...object, backbones: backbones }
 
+    console.log(object.backbones[0].length, object.backbones[1].length, object.backbones[2].length, object.backbones[3].length, object.backbones[4].length, object.backbones[5].length)
+    console.log(object.chains[0].length, object.chains[1].length, object.chains[2].length, object.chains[3].length, object.chains[4].length, object.chains[5].length)
 
 
     

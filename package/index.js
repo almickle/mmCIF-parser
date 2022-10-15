@@ -1,6 +1,7 @@
 
 export default function parse_mmCIF(text) {
 
+    const PDB = text.split('\n')
     const ATOMS = text.split('\n').filter((line) => line.startsWith('ATOM')).map(array => array.split(' ').filter(element => element !== ''))
     const customLabels = ['', 'id', 'atom', 'atom_type', '', 'residue', 'chain', 'entity_index', 'residue_index', '', 'x', 'y', 'z', 'occupancy', 'isotropic_temperature_factor', 'formal_charge', 'author_residue_index', 'author_residue', 'author_chain', 'author_atom_type', '' ]    
     
@@ -88,30 +89,19 @@ export default function parse_mmCIF(text) {
         chains.push([])
     }
 
+    const chainLabels = newAtoms.map((atom) => atom.chain).filter((chainID, index, array) => chainID !== array[index+1])
 
-    function findChain (lastChain, index, chainIndex, containerArrays) {
-        if(index === (newAtoms.length-1)) {
-            object = {...object, chains: chains}
-            return
-        }
-        let currentChain = newAtoms[index].chain
-        if(currentChain !== lastChain && index > 0) {
-            chainIndex++
-        }
-        containerArrays[chainIndex].push(newAtoms[index])
-        index++
-        findChain(currentChain, index, chainIndex, containerArrays)
-    }
+    const chainAtoms = chains.map((chain, index) => newAtoms.filter((atom) => atom.chain === chainLabels[index]))
 
-    findChain('', 0, 0, chains)
 
+    object = {...object, chains: chainAtoms}
     object = {...object, atoms: newAtoms}
 
 
     const backbones = object.chains.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
     object = {...object, backbones: backbones }
-    
 
+    
     return object
 
 }
