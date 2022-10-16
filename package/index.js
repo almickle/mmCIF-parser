@@ -204,11 +204,11 @@ export default function parse_mmCIF(text) {
                     let phi
                     let psi
 
-                    if(phiCross.i > 0 && phiCross.j > 0 && phiCross.k > 0) {
+                    if(phiCross.j < 0) {
                         phi = -Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
                     } else phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
 
-                    if(psiCross.i > 0 && psiCross.j > 0 && psiCross.k > 0) {
+                    if(psiCross.j > 0) {
                         psi = -Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
                     } else psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
 
