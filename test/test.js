@@ -160,10 +160,7 @@ const torsionAngles = residueAtoms.map((chain, i) => {
     return (
         chain.map((residue, index, array) => {
             if(index !== 0 && index !== array.length-1) {
-                if(index === 1 && i === 0) {
-                    console.log(residue)
-                }
-
+               
                 const tag = Object.keys(residue)[0]
                 const tagix = Object.keys(array[index-1])[0]
                 const tagii = Object.keys(array[index+1])[0]
@@ -200,13 +197,25 @@ const torsionAngles = residueAtoms.map((chain, i) => {
                     return Vi
                 })
 
-                const phiSign = v.crossProduct(phiNormals[0], phiNormals[1])
-                    const psiDot = v.crossProduct(psiNormals[0], psiNormals[1])
+                const phiCross = v.crossProduct(phiNormals[0], phiNormals[1])
+                const psiCross = v.crossProduct(psiNormals[0], psiNormals[1])
 
-                    if( index === 1) {
-                        console.log('phiSign:')
-                        console.log(phiSign)
-                        console.log(phiSign.j/Math.abs(phiSign.j))
+                const phiSign = 1
+                const psiSign = 1
+
+                    if( index === 1 && i === 0) {
+                        const angles = [45, 135, 225, 315]
+                        const cos = []
+                        const sin = []
+                        angles.forEach((angle) => cos.push(Math.cos(angle*Math.PI/180)))
+                        angles.forEach((angle) => sin.push(Math.sin(angle*Math.PI/180)))
+                        const vectors = []
+                        angles.forEach((angle, index) => vectors.push(v.createVectorObj([cos[index], sin[index], 0])))
+                        const cross = []
+                        const base = v.createVectorObj([1, 0, 0])
+                        vectors.forEach((vector) => cross.push(v.crossProduct(vector, base)))
+                        console.log(vectors)
+                        console.log(cross)
                     }
 
                 const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI*phiSign
@@ -232,5 +241,3 @@ object = { ...object, torsion_angles: torsionObject }
     // console.log(object.chains[0].length, object.chains[1].length, object.chains[2].length, object.chains[3].length, object.chains[4].length, object.chains[5].length)
 
 
-    
-    console.log(v.dotProduct())
