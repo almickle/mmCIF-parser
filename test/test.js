@@ -203,23 +203,29 @@ const torsionAngles = residueAtoms.map((chain, i) => {
                 const phiSign = 1
                 const psiSign = 1
 
-                    if( index === 1 && i === 0) {
-                        const angles = [45, 135, 225, 315]
-                        const cos = []
-                        const sin = []
-                        angles.forEach((angle) => cos.push(Math.cos(angle*Math.PI/180)))
-                        angles.forEach((angle) => sin.push(Math.sin(angle*Math.PI/180)))
-                        const vectors = []
-                        angles.forEach((angle, index) => vectors.push(v.createVectorObj([cos[index], sin[index], 0])))
-                        const cross = []
-                        const base = v.createVectorObj([1, 0, 0])
-                        vectors.forEach((vector) => cross.push(v.crossProduct(vector, base)))
-                        console.log(vectors)
-                        console.log(cross)
-                    }
+                    // if( index === 1 && i === 0) {
+                    //     const angles = [45, 135, 225, 315]
+                    //     const cos = []
+                    //     const sin = []
+                    //     angles.forEach((angle) => cos.push(Math.cos(angle*Math.PI/180)))
+                    //     angles.forEach((angle) => sin.push(Math.sin(angle*Math.PI/180)))
+                    //     const vectors = []
+                    //     angles.forEach((angle, index) => vectors.push(v.createVectorObj([cos[index], sin[index], 0])))
+                    //     const cross = []
+                    //     const base = v.createVectorObj([1, 0, 0])
+                    //     vectors.forEach((vector) => cross.push(v.crossProduct(vector, base)))
+                    //     console.log(vectors)
+                    //     console.log(cross)
+                    // }
 
                 const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI*phiSign
                 const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI*psiSign
+
+                if( index === 130 && i === 0) {
+                    console.log(phi)
+                    console.log('cross:')
+                    console.log(phiCross)
+                }
 
                 const angles = {phi: phi, psi: psi}
 

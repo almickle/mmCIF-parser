@@ -198,8 +198,8 @@ export default function parse_mmCIF(text) {
                     const phiCross = v.crossProduct(phiNormals[0], phiNormals[1])
                     const psiCross = v.crossProduct(psiNormals[0], psiNormals[1])
 
-                    const phiSign = phiCross.j/Math.abs(phiCross.j)
-                    const psiSign = psiCross.j/Math.abs(psiCross.j)
+                    const phiSign = phiCross.i/Math.abs(phiCross.i)
+                    const psiSign = psiCross.i/Math.abs(psiCross.i)
 
                     let phi
                     let psi
