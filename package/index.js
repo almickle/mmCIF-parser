@@ -149,25 +149,23 @@ export default function parse_mmCIF(text) {
         )
     })
 
+    const residueAtoms = residues.map((chain, index) => chain.map((residue, i) => backbones[index].slice(i*3, i*3+3) ))
+    const residueAtomsWLabels = residues.map((chain, index) => chain.map((residue, i) => {const resObj = { [residue]: backbones[index].slice(i*3, i*3+3) }; return resObj}))
 
-    const residueAtoms = residues.map((chain, index) => chain.map((residue, i) => {const resObj = { [residue]: backbones[index].slice(i*3, i*3+3) }; return resObj}))
 
 
     const torsionAngles = residueAtoms.map((chain, i) => {
         return (
             chain.map((residue, index, array) => {
                 if(index !== 0 && index !== array.length-1) {
-                    const tag = Object.keys(residue)[0]
-                    const tagix = Object.keys(array[index-1])[0]
-                    const tagii = Object.keys(array[index+1])[0]
                     const vectors = { 
-                        Ni: createVectorObj([residue[tag][0].x, residue[tag][0].y, residue[tag][0].z]),
+                        Ni: createVectorObj([residue[0].x, residue[0].y, residue[0].z]),
 
-                        Cix: createVectorObj([array[index-1][tagix][2].x, array[index-1][tagix][2].y, array[index-1][tagix][2].z]), 
-                        Cia: createVectorObj([residue[tag][1].x, residue[tag][1].y, residue[tag][1].z]),
+                        Cix: createVectorObj([array[index-1][2].x, array[index-1][2].y, array[index-1][2].z]), 
+                        Cia: createVectorObj([residue[1].x, residue[1].y, residue[1].z]),
 
-                        Nii: createVectorObj([array[index+1][tagii][0].x, array[index+1][tagii][0].y, array[index+1][tagii][0].z]), 
-                        Ci: createVectorObj([residue[tag][2].x, residue[tag][2].y, residue[tag][2].z]) 
+                        Nii: createVectorObj([array[index+1][0].x, array[index+1][0].y, array[index+1][0].z]), 
+                        Ci: createVectorObj([residue[2].x, residue[2].y, residue[2].z]) 
                     }
 
                     
@@ -204,7 +202,7 @@ export default function parse_mmCIF(text) {
     })
 
     let torsionObject = {}
-    residues.forEach((chain, index) => { torsionObject = {...torsionObject, [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })} } )
+    residues.forEach((chain, index) => { torsionObject = {...torsionObject, chain: chainLabels[index], [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })} } )
 
     object = { ...object, torsion_angles: torsionObject }
     
