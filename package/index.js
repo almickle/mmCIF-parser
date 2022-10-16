@@ -193,7 +193,7 @@ export default function parse_mmCIF(text) {
                     const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
                     const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
 
-                    const angles = {residue: residue.residue, phi: phi, psi: psi}
+                    const angles = {residue: residue[0].residue, phi: phi, psi: psi}
 
                     return angles
                 } else return null
