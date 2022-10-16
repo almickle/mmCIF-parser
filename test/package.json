@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "node-fetch": "^3.2.10"
+    "node-fetch": "^3.2.10",
+    "vector-math": "^1.0.0"
   },
   "name": "test",
   "version": "1.0.0",

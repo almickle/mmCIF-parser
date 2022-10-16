@@ -1,39 +1,45 @@
 # mmCIF-parser
 
-This package contains a function useful for the parsing of PBDx/mmCIF files into JSON. Simply import the function 'parse_mmCIF' and pass a text file as an argument. 
+This package contains a function useful for the parsing of PBDx/mmCIF files into JSON. Simply import the function "parse_mmCIF" and pass a text file as an argument. 
 
-
-import parse_mmCIF from 'mmcif-parser'
+```js
+import parse_mmCIF from "mmcif-parser"
 
 const PDB = parse_mmCIF(text)
 
 console.log(PDB)
-
+```
 
 The function returns the parsed file in the following format:
 ```json
 
 {
-    atoms: [
+    "atoms": [
         {
-            id: number, atom: string, atom_type: string, 
-            residue: string, residue_index: number, 
-            chain: string, entity_index: number, 
-            formal_charge: number, isotropic_temperature_factor: number(float), occupancy: number, 
-            x: number(float), y: number(float), z: number(float) 
+            "id": 1, "atom": "N", "atom_type": "N", 
+            "residue": "MET", "residue_index": 1, 
+            "chain": "A", "entity_index": 1, 
+            "formal_charge": null, "isotropic_temperature_factor": 37.65, "occupancy": 1, 
+            "x": 36.886, "y": 53.177, "z": 21.887,
+            "author_entries": {
+                "residue": "MET", "residue_index": 1, 
+                "chain": "A", "atom_type": "N"
+            }
         }
     ],
-    chain_info: [
+   "chain_info": [
         {
-            type: string, 
-            name: string, molecular_weight: number(float), quantity: number
+            "type": "polymer", 
+            "name": "PCNA", 
+            "molecular_weight": 28795.752, 
+            "quantity": 3
         }
     ],
-    chains: [
-        { atoms of chain }
+    "chains": [
+        { "atom of chain" }
     ],
-    backbones: [
-        { atoms of backbone }
+    "backbones": [
+        { "atom of backbone" }
     ]
 }
 ```

@@ -127,6 +127,78 @@ export default function parse_mmCIF(text) {
     const backbones = object.chains.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
     object = {...object, backbones: backbones }
 
+
+    // torsion angles
+
+    const residues = backbones.map((chain) => {
+        return (
+            chain.filter((atom, index, array) => {
+                if(index !== array.length-1) {
+                return (
+                    atom.residue !== array[index+1].residue
+                )
+            }
+        }).map((atom) => atom.residue)
+        )
+    })
+
+
+    const residueAtoms = residues.map((chain, index) => chain.map((residue, i) => {const resObj = { [residue]: backbones[index].slice(i*3, i*3+3) }; return resObj}))
+
+
+    const torsionAngles = residueAtoms.map((chain, i) => {
+        return (
+            chain.map((residue, index, array) => {
+                if(index !== 0 && index !== array.length-1) {
+                    const tag = Object.keys(residue)[0]
+                    const tagix = Object.keys(array[index-1])[0]
+                    const tagii = Object.keys(array[index+1])[0]
+                    const vectors = { 
+                        Ni: createVectorObj([residue[tag][0].x, residue[tag][0].y, residue[tag][0].z]),
+
+                        Cix: createVectorObj([array[index-1][tagix][2].x, array[index-1][tagix][2].y, array[index-1][tagix][2].z]), 
+                        Cia: createVectorObj([residue[tag][1].x, residue[tag][1].y, residue[tag][1].z]),
+
+                        Nii: createVectorObj([array[index+1][tagii][0].x, array[index+1][tagii][0].y, array[index+1][tagii][0].z]), 
+                        Ci: createVectorObj([residue[tag][2].x, residue[tag][2].y, residue[tag][2].z]) 
+                    }
+
+                    
+                    const phiPlanes = [[vectors.Cix, vectors.Ni, vectors.Cia], [vectors.Ni, vectors.Cia, vectors.Ci]]
+                    const psiPlanes = [[vectors.Ni, vectors.Cia, vectors.Ci], [vectors.Cia, vectors.Ci, vectors.Nii]]
+                    
+                    const phiNormals = phiPlanes.map((plane) => {
+                        const U = v.subVector(plane[0], plane[1])
+                        const W = v.subVector(plane[0], plane[2])
+                        const V = v.crossProduct(U, W)
+                        const Vi = v.unitVector(V)
+
+                        return Vi
+                    })
+
+                    const psiNormals = psiPlanes.map((plane) => {
+                        const U = v.subVector(plane[0], plane[1])
+                        const W = v.subVector(plane[0], plane[2])
+                        const V = v.crossProduct(U, W)
+                        const Vi = v.unitVector(V)
+                        
+                        return Vi
+                    })
+
+                    const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
+                    const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
+
+                    const angles = {phi: phi, psi: psi}
+
+                    return angles
+                } else return null
+            })
+        )
+    })
+
+    const torsionObj = residues.map((chain, index) => chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } }))
+
+    object = { ...object, torsion_angles: torsionObj }
     
     return object
 
