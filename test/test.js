@@ -200,8 +200,20 @@ const torsionAngles = residueAtoms.map((chain, i) => {
                     return Vi
                 })
 
-                const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
-                const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
+                const phiDot = v.dotProduct(phiNormals[0], phiNormals[1])
+                const psiDot = v.dotProduct(psiNormals[0], psiNormals[1])
+
+                let phiSign = 1
+                if(phiDot < 0) {
+                    phiSign = -1
+                }
+                let psiSign = 1
+                if(psiDot < 0) {
+                    psiSign = -1
+                }
+
+                const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI*phiSign
+                const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI*psiSign
 
                 const angles = {phi: phi, psi: psi}
 
@@ -211,15 +223,17 @@ const torsionAngles = residueAtoms.map((chain, i) => {
     )
 })
 
-console.log(residueAtoms[0])
+// console.log(residueAtoms[0])
 
 let torsionObject = {}
 residues.forEach((chain, index) => { torsionObject = {...torsionObject, chain: chainLabels[index], [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })} } )
 
 object = { ...object, torsion_angles: torsionObject }
 
+
     // console.log(object.backbones[0].length, object.backbones[1].length, object.backbones[2].length, object.backbones[3].length, object.backbones[4].length, object.backbones[5].length)
     // console.log(object.chains[0].length, object.chains[1].length, object.chains[2].length, object.chains[3].length, object.chains[4].length, object.chains[5].length)
 
 
     
+    console.log(v.dotProduct())
