@@ -1,6 +1,6 @@
 {
   "name": "mmcif-parser",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "utility for parsing mmCIF files into JSON format",
   "main": "index.js",
   "scripts": {
@@ -31,5 +31,8 @@
   "bugs": {
     "url": "https://github.com/almickle/mmCIF-parser/issues"
   },
-  "homepage": "https://github.com/almickle/mmCIF-parser#readme"
+  "homepage": "https://github.com/almickle/mmCIF-parser#readme",
+  "dependencies": {
+    "vector-math": "^1.0.0"
+  }
 }

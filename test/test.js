@@ -119,14 +119,16 @@ let object = {}
     const chains = []
     for(let i=0; i < chainCount; i++) {
         chains.push([])
+
     }
 
     const chainLabels = newAtoms.map((atom) => atom.chain).filter((chainID, index, array) => chainID !== array[index+1])
 
     const chainAtoms = chains.map((chain, index) => newAtoms.filter((atom) => atom.chain === chainLabels[index]))
 
+    const chainObject = chainAtoms.map((chain, index) => {const chainWLabel = { [chainLabels[index]]: chain }; return chainWLabel })
 
-    object = {...object, chains: chainAtoms}
+    object = {...object, chains: chainObject}
     object = {...object, atoms: newAtoms}
 
 
@@ -205,7 +207,9 @@ let object = {}
 
     // console.log(torsionAngles[0])
 
-    const torsionObj = residues.map((chain, index) => chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } }))
+    const torsionObj = residues.map((chain, index) => { const chainObj = { [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })}; return chainObj} )
+
+
 
     // console.log(object.backbones[0].length, object.backbones[1].length, object.backbones[2].length, object.backbones[3].length, object.backbones[4].length, object.backbones[5].length)
     // console.log(object.chains[0].length, object.chains[1].length, object.chains[2].length, object.chains[3].length, object.chains[4].length, object.chains[5].length)
