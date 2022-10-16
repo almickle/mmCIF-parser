@@ -132,7 +132,12 @@ export default function parse_mmCIF(text) {
 
     const backbones = chainAtoms.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
     
-    object = {...object, backbones: backbones }
+    let backboneObject = {}
+    backbones.forEach((chain, index) => {
+        backboneObject = {...backboneObject, [chainLabels[index]]: chain }
+    })
+
+    object = {...object, backbones: backboneObject }
 
 
     // torsion angles

@@ -1,6 +1,6 @@
 {
   "name": "mmcif-parser",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "utility for parsing mmCIF files into JSON format",
   "main": "index.js",
   "scripts": {
