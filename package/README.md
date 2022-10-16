@@ -36,12 +36,17 @@ The function returns the parsed file in the following format:
         }
     ],
     "chains": [
-        { "atom of chain" }
+        { "A": ["array of all atoms in chain"] }
     ],
     "backbones": [
-        { "atom of backbone" }
+        { "A": ["array of N, CA, C atoms comprising the peptide chain backbone"] }
+    ],
+    "torsion_angles": [
+        {
+            "A": [ { "residue": "PRO", "phi": -75.456, "psi": -43.580 } ]
+        }
     ]
 }
 ```
 
-
+**The torsion angles are currently inaccurate
