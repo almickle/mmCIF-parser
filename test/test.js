@@ -221,10 +221,12 @@ const torsionAngles = residueAtoms.map((chain, i) => {
                 const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI*phiSign
                 const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI*psiSign
 
-                if( index === 130 && i === 0) {
-                    console.log(phi)
-                    console.log('cross:')
-                    console.log(phiCross)
+                if( index === 100 && i === 0) {
+                    console.log(psiNormals)
+                    const sign = (psiNormals[1].i - psiNormals[0].i)*(psiNormals[1].j - psiNormals[0].j)*(psiNormals[1].k - psiNormals[0].k)
+                    console.log(sign)
+                    console.log(Math.sign(sign))
+                    console.log(psi)
                 }
 
                 const angles = {phi: phi, psi: psi}

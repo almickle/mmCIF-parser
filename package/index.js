@@ -195,22 +195,11 @@ export default function parse_mmCIF(text) {
                         return Vi
                     })
 
-                    const phiCross = v.crossProduct(phiNormals[0], phiNormals[1])
-                    const psiCross = v.crossProduct(psiNormals[0], psiNormals[1])
+                    const phiSign = Math.sign((phiNormals[1].i - phiNormals[0].i)*(phiNormals[1].j - phiNormals[0].j)*(phiNormals[1].k - phiNormals[0].k))
+                    const psiSign = Math.sign((psiNormals[1].i - psiNormals[0].i)*(psiNormals[1].j - psiNormals[0].j)*(psiNormals[1].k - psiNormals[0].k))
 
-                    // const phiSign = phiCross.i/Math.abs(phiCross.i)
-                    // const psiSign = psiCross.i/Math.abs(psiCross.i)
-
-                    let phi
-                    let psi
-
-                    if(phiCross.j < 0) {
-                        phi = -Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
-                    } else phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
-
-                    if(psiCross.j > 0) {
-                        psi = -Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
-                    } else psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
+                    const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI*phiSign
+                    const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI*psiSign
 
                     const angles = {residue: residue[0].residue, phi: phi, psi: psi}
 
