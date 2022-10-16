@@ -211,7 +211,7 @@ const torsionAngles = residueAtoms.map((chain, i) => {
     )
 })
 
-console.log(torsionAngles)
+console.log(residueAtoms[0])
 
 let torsionObject = {}
 residues.forEach((chain, index) => { torsionObject = {...torsionObject, chain: chainLabels[index], [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })} } )

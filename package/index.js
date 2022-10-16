@@ -193,7 +193,7 @@ export default function parse_mmCIF(text) {
                     const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI
                     const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI
 
-                    const angles = {phi: phi, psi: psi}
+                    const angles = {residue: residue.residue, phi: phi, psi: psi}
 
                     return angles
                 } else return null
@@ -202,7 +202,7 @@ export default function parse_mmCIF(text) {
     })
 
     let torsionObject = {}
-    residues.forEach((chain, index) => { torsionObject = {...torsionObject, chain: chainLabels[index], [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })} } )
+    residues.forEach((chain, index) => { torsionObject = {...torsionObject, [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {  return torsionAngles[index][i] } else { const blank =  { residue: residue, phi: null, psi: null}; return blank } })} } )
 
     object = { ...object, torsion_angles: torsionObject }
     
