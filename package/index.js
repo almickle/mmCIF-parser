@@ -121,13 +121,16 @@ export default function parse_mmCIF(text) {
 
     const chainLabels = newAtoms.map((atom) => atom.chain).filter((chainID, index, array) => chainID !== array[index+1])
     const chainAtoms = chains.map((chain, index) => newAtoms.filter((atom) => atom.chain === chainLabels[index]))
-    const chainObject = chainAtoms.map((chain, index) => {const chainWLabel = { [chainLabels[index]]: chain }; return chainWLabel })
+
+    let chainObject = {}
+    chainAtoms.forEach((chain, index) => {const chainWLabel = { [chainLabels[index]]: chain }; chainObject = {...chainObject, chainWLabel} })
 
     object = {...object, chains: chainObject}
     object = {...object, atoms: newAtoms}
 
 
-    const backbones = object.chains.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
+    const backbones = chainAtoms.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
+    
     object = {...object, backbones: backbones }
 
 
@@ -199,9 +202,10 @@ export default function parse_mmCIF(text) {
         )
     })
 
-    const torsionObj = residues.map((chain, index) => { const chainObj = { [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })}; return chainObj} )
+    let torsionObject = {}
+    residues.forEach((chain, index) => { const chainObj = { [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })}; torsionObject = {...torsionObject, chainObj} } )
 
-    object = { ...object, torsion_angles: torsionObj }
+    object = { ...object, torsion_angles: torsionObject }
     
     return object
 
