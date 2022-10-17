@@ -2,7 +2,7 @@ import v from 'vector-math'
 
 const { createVectorObj, crossProduct, dotProduct, subVector, unitVector } = v
 
-export default function parse_mmCIF () {
+export default function parse_mmCIF (text) {
 
     const PDB = text.split('\n')
     const ATOMS = text.split('\n').filter((line) => line.startsWith('ATOM')).map(array => array.split(' ').filter(element => element !== ''))
@@ -110,7 +110,6 @@ export default function parse_mmCIF () {
     })
 
 
-    object = {...object, chain_info: chainArray}
 
     let chainCount = 0
     object.chain_info.filter((entry) => entry.type === 'polymer').forEach((entry) => chainCount += entry.quantity)
@@ -184,18 +183,13 @@ export default function parse_mmCIF () {
         } else return residue.filter((atom) => atom.atom_type === 'N' || atom.atom_type === 'C' || atom.atom_type === 'CA')
     }))
 
-    let chainObject = {}
-    chainSequences.forEach((chain, index) => {
-        chainObject = {...chainObject, [chainLabels[index]]: chain } })
-
     let backbonesObject = {}
     residueBackbones.forEach((chain, index) => {
-        chainObject = {...chainObject, [chainLabels[index]]: chain } })
+        backbonesObject = {...backbonesObject, [chainLabels[index]]: chain } })
 
-
-    object = {...object, atoms: newAtoms}
-    object = {...object, chains: chainObject}
-    object = {...object, backbones: backbonesObject }
+    let chainsObject = {}
+    chainSequences.forEach((chain, index) => {
+        chainsObject = {...chainsObject, [chainLabels[index]]: chain } })
 
 
 
@@ -403,6 +397,11 @@ export default function parse_mmCIF () {
 
                 return fixedAngle*sign
     }
+
+    object = {...object, atoms: newAtoms}
+    object = {...object, chain_info: chainArray}
+    object = {...object, chains: chainsObject}
+    object = {...object, backbones: backbonesObject }
 
     return object
 }

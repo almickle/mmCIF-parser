@@ -49,4 +49,3 @@ The function returns the parsed file in the following format:
 }
 ```
 
-**The torsion angles are currently inaccurate

@@ -186,18 +186,20 @@ const residueBackbones = chainSequences.map((chain, index) => chain.map((residue
     } else return residue.filter((atom) => atom.atom_type === 'N' || atom.atom_type === 'C' || atom.atom_type === 'CA')
 }))
 
-let chainObject = {}
-chainSequences.forEach((chain, index) => {
-    chainObject = {...chainObject, [chainLabels[index]]: chain } })
-
 let backbonesObject = {}
 residueBackbones.forEach((chain, index) => {
-    chainObject = {...chainObject, [chainLabels[index]]: chain } })
+    backbonesObject = {...backbonesObject, [chainLabels[index]]: chain } })
+
+let chainsObject = {}
+chainSequences.forEach((chain, index) => {
+    chainsObject = {...chainsObject, [chainLabels[index]]: chain } })
 
 
 object = {...object, atoms: newAtoms}
-object = {...object, chains: chainObject}
+object = {...object, chains: chainsObject}
 object = {...object, backbones: backbonesObject }
+
+console.log(residueBackbones[0])
 
 
 
@@ -405,4 +407,7 @@ function multiplyMatrix(inputMatrix, transformMatrix, outputMatrix) {
 
                 return fixedAngle*sign
     }
+
+    // console.log(backbonesObject)
+
 
