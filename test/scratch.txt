@@ -1,0 +1,82 @@
+// const phiSign = Math.sign((phiNormals[1].i - phiNormals[0].i)*(phiNormals[1].j - phiNormals[0].j)*(phiNormals[1].k - phiNormals[0].k))
+                // const psiSign = Math.sign((psiNormals[1].i - psiNormals[0].i)*(psiNormals[1].j - psiNormals[0].j)*(psiNormals[1].k - psiNormals[0].k))
+
+
+                const thetaX = Math.atan(vectors[0].j/-vectors[0].k)
+                const rotationMatrix_X = [
+                        [1, 0, 0],
+                        [0, Math.cos(thetaX), -Math.sin(thetaX)],
+                        [0, Math.sin(thetaX), Math.cos(thetaX)]
+                    ]
+
+                const intermediateA1 = []
+                multiplyMatrix(vectorA, rotationMatrix_X, intermediateA1)
+
+                const thetaY = Math.atan(intermediateA1[0]/intermediateA1[2])
+                const rotationMatrix_Y = [
+                        [Math.cos(thetaY), 0, Math.sin(thetaY)],
+                        [0, 1, 0],
+                        [-Math.sin(thetaY), 0, Math.cos(thetaY)]
+                    ]
+                        
+                const intermediateA2 = []
+                multiplyMatrix(intermediateA1, rotationMatrix_Y, intermediateA2)
+
+                const intermediateB1 = []
+                const intermediateB2 = []
+                const intermediateP1 = []
+                const intermediateP2 = []
+                multiplyMatrix(vectorB, rotationMatrix_X, intermediateB1)
+                multiplyMatrix(intermediateB1, rotationMatrix_Y, intermediateB2)
+                multiplyMatrix(vectorP, rotationMatrix_X, intermediateP1)
+                multiplyMatrix(intermediateP1, rotationMatrix_Y, intermediateP2)
+
+                const thetaZ = Math.atan(-intermediateP2[0]/intermediateP2[1])
+                const rotationMatrix_Z = [
+                    [Math.cos(thetaZ), -Math.sin(thetaZ), 0],
+                    [Math.sin(thetaZ), Math.cos(thetaZ), 0],
+                    [0, 0, 1]
+                ]
+
+                const finalMatrixA = []
+                const finalMatrixB = []
+                const finalMatrixP = []
+                multiplyMatrix(intermediateA2, rotationMatrix_Z, finalMatrixA)
+                multiplyMatrix(intermediateB2, rotationMatrix_Z, finalMatrixB)
+                multiplyMatrix(intermediateP2, rotationMatrix_Z, finalMatrixP)
+
+
+                const localVectors = [v.createVectorObj(finalMatrixA), v.createVectorObj(finalMatrixB)]
+                const angle = Math.acos(v.dotProduct(localVectors[0], localVectors[1])) * 180/Math.PI
+                // const cross = v.crossProduct(localVectors[0], localVectors[1])
+
+                const fixedMatrixA = finalMatrixA.map((float) => parseFloat(float.toFixed(3)))
+                const fixedMatrixB = finalMatrixB.map((float) => parseFloat(float.toFixed(3)))
+                const fixedVectors = [v.createVectorObj(fixedMatrixA), v.createVectorObj(fixedMatrixB)]
+                const fixedAngle = parseFloat(angle.toFixed(3))
+                // const fixedCross = v.createVectorObj([parseFloat(cross.i.toFixed(3)), parseFloat(cross.j.toFixed(3)), parseFloat(cross.k.toFixed(3))])
+
+                console.log('angle:')
+                console.log(fixedAngle)
+                console.log('vector:')
+                console.log(fixedVectors)
+                console.log()
+
+
+
+// const residues = backbones.map((chain) => {
+//     return (
+//         chain.filter((atom, index, array) => {
+//             if(index !== array.length-1) {
+//             return (
+//                 atom.residue !== array[index+1].residue
+//             )
+//         }
+//     }).map((atom) => atom.residue)
+//     )
+// })
+
+// const residueAtoms = residues.map((chain, index) => chain.map((residue, i) => backbones[index].slice(i*3, i*3+3)))
+// const residueAtomsWLabels = residues.map((chain, index) => chain.map((residue, i) => {const resObj = { [residue]: backbones[index].slice(i*3, i*3+3) }; return resObj}))
+
+// const backbones = chainAtoms.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))

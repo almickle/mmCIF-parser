@@ -2,16 +2,17 @@ import { readFileSync } from 'fs'
 import { inspect } from 'util'
 import 'util'
 import v from 'vector-math'
+import { sign } from 'crypto'
 const { createVectorObj, crossProduct, dotProduct, subVector, unitVector } = v
 
 
 
 const PDB = readFileSync('./assets/1ul1.cif', 'utf-8').split('\n')
 const ATOMS = PDB.filter((line) => line.startsWith('ATOM')).map(array => array.split(' ').filter(element => element !== ''))
-const atomLabels = PDB.filter((line) => line.startsWith('_atom_site')).filter((line) => line.startsWith('_atom_sites.fract_transf') === false && line.startsWith('_atom_sites.entry_id') === false)
 const customLabels = ['', 'id', 'atom', 'atom_type', '', 'residue', 'chain', 'entity_index', 'residue_index', '', 'x', 'y', 'z', 'occupancy', 'isotropic_temperature_factor', 'formal_charge', 'author_residue_index', 'author_residue', 'author_chain', 'author_atom_type', '' ]
 
 let object = {}
+
 const newAtoms = ATOMS.map((array) => {
     let atom_info = {}
     let author_entries = {}
@@ -124,60 +125,108 @@ for(let i=0; i < chainCount; i++) {
 const chainLabels = newAtoms.map((atom) => atom.chain).filter((chainID, index, array) => chainID !== array[index+1])
 const chainAtoms = chains.map((chain, index) => newAtoms.filter((atom) => atom.chain === chainLabels[index]))
 
+
+// seq with holes begin
+const sequenceStart = PDB.indexOf('_entity_poly_seq.hetero ')
+const seq = []
+
+for(let i=sequenceStart; i <= 100000; i++) {
+    if(PDB[i] === '# ') {
+        break
+    } else {
+        seq.push(PDB[i])
+    }
+}
+
+
+const polymers = chainInfo.filter((chain) => chain[1] === 'polymer')
+const sequences = polymers.map((chain, index) => seq.filter((line) => line.startsWith(index+1)).map((line) => line.split(' ').filter((entry) => entry !== '')[2]))
+
+const seqChains = chainLabels.map((chain, index) => sequences[chainAtoms[index][0].entity_index-1])
+
+const seqResidues = chainAtoms.map((chain, index) => {
+        const residueArray = [[]]
+        let n = 0
+        chain.forEach((atom, index, array) => {
+            if(index !== array.length-1) {
+                if(atom.residue_index === array[index+1].residue_index) {
+                    residueArray[n].push(atom)
+                } else {
+                    residueArray.push([])
+                    n++
+                }
+            } else { residueArray[n].push(atom) }
+        })
+    return (
+        residueArray
+    )
+})
+
+
+const chainSequences = seqChains.map((seq, index) => {
+    let n = 0
+    return (
+        seq.map((residue, i) => {            
+           if(n <= seqResidues[index].length-1) { 
+                if(residue === seqResidues[index][n][0].residue && i === seqResidues[index][n][0].residue_index-1) {
+                    n++
+                    return seqResidues[index][n-1]
+                } else {
+                    return null
+                }
+            } else return null
+        })
+    )
+})
+
+
+const residueBackbones = chainSequences.map((chain, index) => chain.map((residue, i) => {
+    if(!residue) {
+        return null
+    } else return residue.filter((atom) => atom.atom_type === 'N' || atom.atom_type === 'C' || atom.atom_type === 'CA')
+}))
+
 let chainObject = {}
-chainAtoms.forEach((chain, index) => {
+chainSequences.forEach((chain, index) => {
     chainObject = {...chainObject, [chainLabels[index]]: chain } })
 
-object = {...object, chains: chainObject}
+let backbonesObject = {}
+residueBackbones.forEach((chain, index) => {
+    chainObject = {...chainObject, [chainLabels[index]]: chain } })
+
+
 object = {...object, atoms: newAtoms}
+object = {...object, chains: chainObject}
+object = {...object, backbones: backbonesObject }
 
-
-const backbones = chainAtoms.map((chain) => chain.filter((residue) => residue.atom_type === 'CA' || residue.atom_type === 'C' || residue.atom_type === 'N' ))
-
-object = {...object, backbones: backbones }
 
 
 // torsion angles
 
-const residues = backbones.map((chain) => {
-    return (
-        chain.filter((atom, index, array) => {
-            if(index !== array.length-1) {
-            return (
-                atom.residue !== array[index+1].residue
-            )
-        }
-    }).map((atom) => atom.residue)
-    )
-})
-
-const residueAtoms = residues.map((chain, index) => chain.map((residue, i) => backbones[index].slice(i*3, i*3+3)))
-const residueAtomsWLabels = residues.map((chain, index) => chain.map((residue, i) => {const resObj = { [residue]: backbones[index].slice(i*3, i*3+3) }; return resObj}))
-
-
-
-const torsionAngles = residueAtoms.map((chain, i) => {
+const torsionAngles = residueBackbones.map((chain, i) => {
     return (
         chain.map((residue, index, array) => {
-            if(index !== 0 && index !== array.length-1) {
-               
-                const tag = Object.keys(residue)[0]
-                const tagix = Object.keys(array[index-1])[0]
-                const tagii = Object.keys(array[index+1])[0]
-                const vectors = { 
-                    Ni: createVectorObj([residue[0].x, residue[0].y, residue[0].z]),
+                if(residue && array[index-1] && array[index+1]) {
+                    const vectors = { 
+                        Ni: createVectorObj([residue[0].x, residue[0].y, residue[0].z]),
 
-                    Cix: createVectorObj([array[index-1][2].x, array[index-1][2].y, array[index-1][2].z]), 
-                    Cia: createVectorObj([residue[1].x, residue[1].y, residue[1].z]),
+                        Cix: createVectorObj([array[index-1][2].x, array[index-1][2].y, array[index-1][2].z]), 
+                        Cia: createVectorObj([residue[1].x, residue[1].y, residue[1].z]),
 
-                    Nii: createVectorObj([array[index+1][0].x, array[index+1][0].y, array[index+1][0].z]), 
-                    Ci: createVectorObj([residue[2].x, residue[2].y, residue[2].z]) 
+                        Nii: createVectorObj([array[index+1][0].x, array[index+1][0].y, array[index+1][0].z]), 
+                        Ci: createVectorObj([residue[2].x, residue[2].y, residue[2].z]) 
                 }
 
 
-                
-                const phiPlanes = [[vectors.Cix, vectors.Ni, vectors.Cia], [vectors.Ni, vectors.Cia, vectors.Ci]]
+                const phiPlanes = [[vectors.Ni, vectors.Cia, vectors.Ci], [vectors.Cix, vectors.Ni, vectors.Cia]]
                 const psiPlanes = [[vectors.Ni, vectors.Cia, vectors.Ci], [vectors.Cia, vectors.Ci, vectors.Nii]]
+
+                const phiDirection = v.unitVector(v.subVector(vectors.Cia, vectors.Ni))
+                const psiDirection = v.unitVector(v.subVector(vectors.Cia, vectors.Ci))
+
+                const phiAlphaCarbonyl = v.unitVector(v.subVector(vectors.Cia, vectors.Ci))
+                const psiAlphaNitrogen = v.unitVector(v.subVector(vectors.Cia, vectors.Ni))
+
                 
                 const phiNormals = phiPlanes.map((plane) => {
                     const U = v.subVector(plane[0], plane[1])
@@ -197,55 +246,163 @@ const torsionAngles = residueAtoms.map((chain, i) => {
                     return Vi
                 })
 
-                const phiCross = v.crossProduct(phiNormals[0], phiNormals[1])
-                const psiCross = v.crossProduct(psiNormals[0], psiNormals[1])
-
-                const phiSign = 1
-                const psiSign = 1
-
-                    // if( index === 1 && i === 0) {
-                    //     const angles = [45, 135, 225, 315]
-                    //     const cos = []
-                    //     const sin = []
-                    //     angles.forEach((angle) => cos.push(Math.cos(angle*Math.PI/180)))
-                    //     angles.forEach((angle) => sin.push(Math.sin(angle*Math.PI/180)))
-                    //     const vectors = []
-                    //     angles.forEach((angle, index) => vectors.push(v.createVectorObj([cos[index], sin[index], 0])))
-                    //     const cross = []
-                    //     const base = v.createVectorObj([1, 0, 0])
-                    //     vectors.forEach((vector) => cross.push(v.crossProduct(vector, base)))
-                    //     console.log(vectors)
-                    //     console.log(cross)
-                    // }
-
-                const phi = Math.acos(v.dotProduct(phiNormals[0], phiNormals[1])) * 180/Math.PI*phiSign
-                const psi = Math.acos(v.dotProduct(psiNormals[0], psiNormals[1])) * 180/Math.PI*psiSign
-
-                if( index === 100 && i === 0) {
-                    console.log(psiNormals)
-                    const sign = (psiNormals[1].i - psiNormals[0].i)*(psiNormals[1].j - psiNormals[0].j)*(psiNormals[1].k - psiNormals[0].k)
-                    console.log(sign)
-                    console.log(Math.sign(sign))
-                    console.log(psi)
-                }
+                const phi = transformVectors(phiNormals, phiDirection, phiAlphaCarbonyl)
+                const psi = transformVectors(psiNormals, psiDirection, psiAlphaNitrogen)
 
                 const angles = {phi: phi, psi: psi}
 
+
+                if(i === 0 && (index === 2 || index == 10 || index == 11 || index == 59 || index == 262 )) {
+                       transformVectors(psiNormals, psiDirection, psiAlphaNitrogen)
+                }
+
                 return angles
+
             } else return null
         })
     )
 })
 
-// console.log(residueAtoms[0])
+
 
 let torsionObject = {}
-residues.forEach((chain, index) => { torsionObject = {...torsionObject, chain: chainLabels[index], [chainLabels[index]]: chain.map((residue, i, array) => { if(i !== 0 && i !== array.length-1) {const obj = { [residue]: torsionAngles[index][i]}; return obj } else { const blank = { [residue]: {phi: null, psi: null} }; return blank } })} } )
+chainSequences.forEach((chain, index) => { torsionObject = {...torsionObject, [chainLabels[index]]: chain.map((residue, i, array) => { if(residue && array[i-1] && array[i+1]) {  return torsionAngles[index][i] } else { const blank =  { residue: residue, phi: null, psi: null}; return blank } })} } )
 
 object = { ...object, torsion_angles: torsionObject }
 
 
-    // console.log(object.backbones[0].length, object.backbones[1].length, object.backbones[2].length, object.backbones[3].length, object.backbones[4].length, object.backbones[5].length)
-    // console.log(object.chains[0].length, object.chains[1].length, object.chains[2].length, object.chains[3].length, object.chains[4].length, object.chains[5].length)
 
+function multiplyMatrix(inputMatrix, transformMatrix, outputMatrix) {
+
+    outputMatrix[0] = inputMatrix[0] * transformMatrix[0][0] + inputMatrix[1] * transformMatrix[1][0] + inputMatrix[2] * transformMatrix[2][0]
+    outputMatrix[1] = inputMatrix[0] * transformMatrix[0][1] + inputMatrix[1] * transformMatrix[1][1] + inputMatrix[2] * transformMatrix[2][1]
+    outputMatrix[2] = inputMatrix[0] * transformMatrix[0][2] + inputMatrix[1] * transformMatrix[1][2] + inputMatrix[2] * transformMatrix[2][2]
+
+}
+
+
+    function transformVectors(vectors, direction, group) {
+                const vectorA = [vectors[0].i, vectors[0].j, vectors[0].k]
+                const vectorB = [vectors[1].i, vectors[1].j, vectors[1].k]
+                const vectorP = [direction.i, direction.j, direction.k]
+                const vectorQ = [group.i, group.j, group.k]
+
+                const thetaZ = Math.atan(-vectorP[0]/vectorP[1])
+                const rotationMatrix_Z = [
+                        [Math.cos(thetaZ), -Math.sin(thetaZ), 0],
+                        [Math.sin(thetaZ), Math.cos(thetaZ), 0],
+                        [0, 0, 1]
+                    ]
+
+                const intermediateP1 = []
+                const intermediateA1 = []
+                const intermediateB1 = []
+                const intermediateQ1 = []
+                multiplyMatrix(vectorP, rotationMatrix_Z, intermediateP1)
+                multiplyMatrix(vectorA, rotationMatrix_Z, intermediateA1)
+                multiplyMatrix(vectorB, rotationMatrix_Z, intermediateB1)
+                multiplyMatrix(vectorQ, rotationMatrix_Z, intermediateQ1)
+
+
+                const thetaX = Math.atan(intermediateP1[2]/intermediateP1[1])
+                const rotationMatrix_X = [
+                        [1, 0, 0],
+                        [0, Math.cos(thetaX), -Math.sin(thetaX)],
+                        [0, Math.sin(thetaX), Math.cos(thetaX)]
+                    ]
+                        
+                const intermediateP2 = []
+                const intermediateA2 = []
+                const intermediateB2 = []
+                const intermediateQ2 = []
+                multiplyMatrix(intermediateP1, rotationMatrix_X, intermediateP2)
+                multiplyMatrix(intermediateA1, rotationMatrix_X, intermediateA2)
+                multiplyMatrix(intermediateB1, rotationMatrix_X, intermediateB2)
+                multiplyMatrix(intermediateQ1, rotationMatrix_X, intermediateQ2)
+
+
+                const thetaY = Math.atan(intermediateQ2[0]/intermediateQ2[2])
+                const rotationMatrix_Y = [
+                        [Math.cos(thetaY), 0, Math.sin(thetaY)],
+                        [0, 1, 0],
+                        [-Math.sin(thetaY), 0, Math.cos(thetaY)]
+                    ]
+                
+                const intermediateA3 = []
+                const intermediateB3 = []
+                const intermediateQ3 = []
+                const intermediateP3 = []
+                multiplyMatrix(intermediateP2, rotationMatrix_Y, intermediateP3)
+                multiplyMatrix(intermediateA2, rotationMatrix_Y, intermediateA3)
+                multiplyMatrix(intermediateB2, rotationMatrix_Y, intermediateB3)
+                multiplyMatrix(intermediateQ2, rotationMatrix_Y, intermediateQ3)
+
+
+                const theta180Y = Math.PI
+                const rotationMatrix_180Y = [
+                    [Math.cos(theta180Y), 0, Math.sin(theta180Y)],
+                    [0, 1, 0],
+                    [-Math.sin(theta180Y), 0, Math.cos(theta180Y)]
+                ]
+                const theta180Z = Math.PI
+                const rotationMatrix_180Z = [
+                    [Math.cos(theta180Z), -Math.sin(theta180Z), 0],
+                    [Math.sin(theta180Z), Math.cos(theta180Z), 0],
+                    [0, 0, 1]
+                ]
+
+                let intermediateA4 = []
+                let intermediateB4 = []
+                let intermediateQ4 = []
+                let intermediateP4 = []
+                if(intermediateQ3[2] < 0) {
+                    multiplyMatrix(intermediateP3, rotationMatrix_180Y, intermediateP4)
+                    multiplyMatrix(intermediateA3, rotationMatrix_180Y, intermediateA4)
+                    multiplyMatrix(intermediateB3, rotationMatrix_180Y, intermediateB4)
+                    multiplyMatrix(intermediateQ3, rotationMatrix_180Y, intermediateQ4)
+                } else {
+                    intermediateP4 = intermediateP3
+                    intermediateA4 = intermediateA3
+                    intermediateB4 = intermediateB3
+                    intermediateQ4 = intermediateQ3
+                }
+
+
+                let intermediateA5 = []
+                let intermediateB5 = []
+                let intermediateQ5 = []
+                let intermediateP5 = []
+                if(intermediateQ3[1] < 0) {
+                    multiplyMatrix(intermediateP4, rotationMatrix_180Y, intermediateP5)
+                    multiplyMatrix(intermediateA4, rotationMatrix_180Z, intermediateA5)
+                    multiplyMatrix(intermediateB4, rotationMatrix_180Z, intermediateB5)
+                    multiplyMatrix(intermediateQ4, rotationMatrix_180Z, intermediateQ5)
+                } else {
+                    intermediateP5 = intermediateP4
+                    intermediateA5 = intermediateA4
+                    intermediateB5 = intermediateB4
+                    intermediateQ5 = intermediateQ4
+                }
+
+                const finalMatrixP = intermediateP5
+                const finalMatrixA = intermediateA5
+                const finalMatrixB = intermediateB5
+                const finalMatrixQ = intermediateQ5
+
+
+
+                const localVectors = [v.createVectorObj(finalMatrixA), v.createVectorObj(finalMatrixB)]
+                const angle = Math.acos(v.dotProduct(localVectors[0], localVectors[1])) * 180/Math.PI
+                const cross = v.crossProduct(localVectors[0], localVectors[1])
+
+                const fixedMatrixA = finalMatrixA.map((float) => parseFloat(float.toFixed(3)))
+                const fixedMatrixB = finalMatrixB.map((float) => parseFloat(float.toFixed(3)))
+                const fixedVectors = [v.createVectorObj(fixedMatrixA), v.createVectorObj(fixedMatrixB)]
+                const fixedAngle = parseFloat(angle.toFixed(3))
+                const fixedCross = v.createVectorObj([parseFloat(cross.i.toFixed(3)), parseFloat(cross.j.toFixed(3)), parseFloat(cross.k.toFixed(3))])
+                const sign = Math.sign(fixedCross.j)
+
+
+                return fixedAngle*sign
+    }
 
