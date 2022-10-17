@@ -162,6 +162,7 @@ const seqResidues = chainAtoms.map((chain, index) => {
     )
 })
 
+console.log(sequences[0])
 
 const chainSequences = seqChains.map((seq, index) => {
     let n = 0
@@ -199,7 +200,7 @@ object = {...object, atoms: newAtoms}
 object = {...object, chains: chainsObject}
 object = {...object, backbones: backbonesObject }
 
-console.log(residueBackbones[0])
+// console.log(residueBackbones[0])
 
 
 

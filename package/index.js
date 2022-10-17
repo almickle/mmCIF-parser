@@ -258,7 +258,7 @@ export default function parse_mmCIF (text) {
 
 
     let torsionObject = {}
-    chainSequences.forEach((chain, index) => { torsionObject = {...torsionObject, [chainLabels[index]]: chain.map((residue, i, array) => { if(residue && array[i-1] && array[i+1]) {  return torsionAngles[index][i] } else { const blank =  { residue: residue, phi: null, psi: null}; return blank } })} } )
+    chainSequences.forEach((chain, index) => { torsionObject = {...torsionObject, [chainLabels[index]]: chain.map((residue, i, array) => { if(residue && array[i-1] && array[i+1]) {  return torsionAngles[index][i] } else { const blank =  { residue: sequences[i], phi: null, psi: null}; return blank } })} } )
 
     object = { ...object, torsion_angles: torsionObject }
 
