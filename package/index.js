@@ -112,7 +112,7 @@ export default function parse_mmCIF (text) {
 
 
     let chainCount = 0
-    object.chain_info.filter((entry) => entry.type === 'polymer').forEach((entry) => chainCount += entry.quantity)
+    chainArray.filter((entry) => entry.type === 'polymer').forEach((entry) => chainCount += entry.quantity)
 
     const chains = []
     for(let i=0; i < chainCount; i++) {
